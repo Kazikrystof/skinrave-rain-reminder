@@ -13,15 +13,17 @@ def start_scraper(callback):
 
     with sync_playwright() as p:
 
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
 
         print("Načítám stránku...")
 
         page.goto(URL, wait_until="domcontentloaded")
         page.wait_for_timeout(5000)
+        
 
         print("Stránka načtena!")
+        
 
         rain_active = False
 
