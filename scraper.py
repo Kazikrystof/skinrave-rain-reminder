@@ -26,6 +26,7 @@ def start_scraper(callback):
         
 
         rain_active = False
+        
 
         while True:
             try:

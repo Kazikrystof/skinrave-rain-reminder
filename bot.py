@@ -55,7 +55,7 @@ async def send_pot_alert(channel_id, amount, role_id=None):
     )
 
     embed.add_field(
-        name="🔗 Join",
+        name="🔗 Be ready",
         value="[Click here](https://skinrave.gg/)",
         inline=False
     )
