@@ -213,7 +213,7 @@ async def settings(interaction: discord.Interaction):
 
     channel = guild.get("channel_id")
     pot = guild.get("min_pot", "Not set")
-    role = guild.get("role_id")
+    role = guild.get("pot_role")
 
     embed = discord.Embed(
         title="⚙️ Server Settings",
