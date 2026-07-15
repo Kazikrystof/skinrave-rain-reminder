@@ -106,6 +106,37 @@ async def potalert(interaction: discord.Interaction, amount: float, role: discor
     await interaction.response.send_message(
         f"✅ Pot alert has been set to **${amount}**."
     )
+@bot.tree.command(
+    name="invite",
+    description="Generate an invite link."
+)
+async def invite(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="🤖 Invite Rain Checker",
+        description="Add **Rain Checker** to your Discord server in one click.",
+        color=discord.Color.green()
+    )
+
+    embed.add_field(
+        name="🔗 Invite Link",
+        value="[Click here to invite the bot](https://discord.com/oauth2/authorize?client_id=1525916434528735373&permissions=281600&integration_type=0&scope=bot+applications.commands)",
+        inline=False
+    )
+
+    embed.add_field(
+        name="✨ Features",
+        value="• Rain notifications\n• Pot alerts\n• Easy setup",
+        inline=False
+    )
+
+    embed.set_footer(
+        text="Rain Checker • By kazikrystof"
+    )
+
+    await interaction.response.send_message(embed=embed)
+
+
 
 @bot.tree.command(
     name="pot",
