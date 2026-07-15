@@ -150,6 +150,100 @@ async def pot(interaction: discord.Interaction):
 
     await interaction.response.send_message(embed=embed)
 
+
+@app_commands.checks.has_permissions(administrator=True)
+@bot.tree.command(
+    name="reset",
+    description="Delete configuration settings."
+)
+async def disable(interaction: discord.Interaction):
+
+    guild_id = str(interaction.guild.id)
+
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = {}
+
+    if guild_id not in data:
+        await interaction.response.send_message(
+            "❌ This server is not configured.",
+            ephemeral=True
+        )
+        return
+
+    del data[guild_id]
+
+    with open(CONFIG_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
+
+    await interaction.response.send_message(
+        "✅ Bot has been disabled for this server."
+    )
+
+
+@app_commands.checks.has_permissions(administrator=True)    
+@bot.tree.command(
+    name="settings",
+    description="Shows the current server settings."
+)
+async def settings(interaction: discord.Interaction):
+
+    guild_id = str(interaction.guild.id)
+
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        await interaction.response.send_message(
+            "❌ No configuration found.",
+            ephemeral=True
+        )
+        return
+
+    if guild_id not in data:
+        await interaction.response.send_message(
+            "❌ This server is not configured.\nUse **/setup** first.",
+            ephemeral=True
+        )
+        return
+
+    guild = data[guild_id]
+
+    channel = guild.get("channel_id")
+    pot = guild.get("min_pot", "Not set")
+    role = guild.get("role_id")
+
+    embed = discord.Embed(
+        title="⚙️ Server Settings",
+        color=discord.Color.blurple()
+    )
+
+    embed.add_field(
+        name="📢 Notification Channel",
+        value=f"<#{channel}>",
+        inline=False
+    )
+
+    embed.add_field(
+        name="💰 Pot Alert",
+        value=f"${pot}" if pot != "Not set" else "Disabled",
+        inline=False
+    )
+
+    embed.add_field(
+        name="👥 Mention Role",
+        value=f"<@&{role}>" if role else "Disabled",
+        inline=False
+    )
+
+    embed.set_footer(
+        text="Rain Checker • By kazikrystof"
+    )
+
+    await interaction.response.send_message(embed=embed)
+
 @app_commands.checks.has_permissions(administrator=True)
 @bot.tree.command(
     name="setup",
