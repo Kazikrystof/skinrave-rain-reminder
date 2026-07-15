@@ -9,6 +9,7 @@ URL = "https://skinrave.gg/"
 
 
 def start_scraper(callback):
+    print("SCRAPER FUNCTION STARTED")
     global amount, online
 
     with sync_playwright() as p:

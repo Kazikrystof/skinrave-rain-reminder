@@ -82,7 +82,7 @@ def rain_found(amount, online, current_rain):
         else:
             rain_sent[guild_id] = False
 
-
+print("STARTING SCRAPER THREAD")
 threading.Thread(
     target=start_scraper,
     args=(rain_found,),
