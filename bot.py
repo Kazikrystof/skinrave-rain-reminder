@@ -13,6 +13,7 @@ CONFIG_FILE = BASE_DIR / "configs.json"
 load_dotenv(BASE_DIR / ".env")
 TOKEN = os.getenv("TOKEN")
 
+last_rain = None
 
 MY_GUILD_ID = 1500953012409991229
 
@@ -136,6 +137,24 @@ async def invite(interaction: discord.Interaction):
 
     await interaction.response.send_message(embed=embed)
 
+
+@bot.tree.command(
+    name="last_rain",
+    description="Shows when the last rain started."
+)
+async def last_rain_command(interaction: discord.Interaction):
+
+    if last_rain is None:
+        await interaction.response.send_message(
+            "No rain has been detected yet."
+        )
+        return
+
+    timestamp = int(last_rain.timestamp())
+
+    await interaction.response.send_message(
+        f"🌧️ Last rain: <t:{timestamp}:R>"
+    )
 
 
 @bot.tree.command(

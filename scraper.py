@@ -1,7 +1,8 @@
 from playwright.sync_api import sync_playwright
 import time
 from logger import log
-
+from datetime import datetime
+import bot
 amount = None
 online = None
 
@@ -63,7 +64,7 @@ def start_scraper(callback):
                 if current_rain and not rain_active:
 
                     rain_active = True
-
+                    bot.last_rain = datetime.now()
                     log(
                         f"Rain detected | Amount: ${amount} | Online: {online}"
                     )
