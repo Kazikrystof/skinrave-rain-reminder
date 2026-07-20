@@ -2,6 +2,7 @@ import threading
 import asyncio
 import json
 from pathlib import Path
+from kick_scraper import start_kick_scraper
 
 from bot import bot, TOKEN, send_rain, send_pot_alert
 from scraper import start_scraper

@@ -2,11 +2,31 @@ from playwright.sync_api import sync_playwright
 import time
 from logger import log
 from datetime import datetime
+import re
+import csv
+import os
 import bot
 amount = None
 online = None
 
 URL = "https://skinrave.gg/"
+
+CSV_FILE = "kick_links.csv"
+
+
+def save_kick_link(link):
+    if not os.path.exists(CSV_FILE):
+        with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
+            pass
+
+    with open(CSV_FILE, "r", newline="", encoding="utf-8") as f:
+        existing = {row[0] for row in csv.reader(f) if row}
+
+    if link not in existing:
+        with open(CSV_FILE, "a", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerow([link])
+
+        print(f"🎥 New Kick link: {link}")
 
 
 def start_scraper(callback):
@@ -32,6 +52,34 @@ def start_scraper(callback):
 
         while True:
             try:
+                try:
+                    messages = page.locator("#chat-container p").all_inner_texts()
+                    messages.reverse()
+
+                    for msg in messages:
+
+                            
+                        print(msg)
+
+                        links = re.findall(
+                            r"(?:https?://)?(?:www\.)?kick\.com/[^\s]+",
+                            msg,
+                            flags=re.IGNORECASE
+                        )
+
+                        for link in links:
+                            if not link.startswith("http"):
+                                link = "https://" + link
+
+                            save_kick_link(link)
+
+                    for link in links:
+                        if not link.startswith("http"):
+                            link = "https://" + link
+                        save_kick_link(link)
+
+                except Exception:
+                    pass
 
                 # Aktualizace potu
                 try:
@@ -83,7 +131,7 @@ def start_scraper(callback):
                 # Callback až po načtení dat
                 callback(amount, online, current_rain)
 
-                time.sleep(1)
+                time.sleep(20)
 
             except Exception as e:
                 print("SCRAPER ERROR:", repr(e))
