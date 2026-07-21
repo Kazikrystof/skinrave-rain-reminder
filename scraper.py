@@ -52,7 +52,7 @@ def start_scraper(callback):
 
         while True:
             try:
-                try:
+                """ try:
                     messages = page.locator("#chat-container p").all_inner_texts()
                     messages.reverse()
 
@@ -79,7 +79,7 @@ def start_scraper(callback):
                         save_kick_link(link)
 
                 except Exception:
-                    pass
+                    pass """
 
                 # Aktualizace potu
                 try:
