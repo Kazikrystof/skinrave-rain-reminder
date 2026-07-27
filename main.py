@@ -37,9 +37,10 @@ def rain_found(amount, online, current_rain):
 
         # ---------------- POT ALERT ----------------
 
-        if min_pot is not None:
+        if amount:
+            current_pot = float(amount.replace(",", ""))
 
-            if float(amount) >= float(min_pot):
+            if current_pot >= float(min_pot):
 
                 if not pot_alert_sent[guild_id]:
 
