@@ -9,7 +9,19 @@ import bot
 amount = None
 online = None
 
+
 URL = "https://skinrave.gg/"
+def open_page(browser):
+    page = browser.new_page()
+
+    print("Načítám stránku...")
+
+    page.goto(URL, wait_until="domcontentloaded")
+    page.wait_for_timeout(5000)
+
+    print("Stránka načtena!")
+
+    return page
 
 CSV_FILE = "kick_links.csv"
 
@@ -36,18 +48,11 @@ def start_scraper(callback):
     with sync_playwright() as p:
 
         browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
-
-        print("Načítám stránku...")
-
-        page.goto(URL, wait_until="domcontentloaded")
-        page.wait_for_timeout(5000)
-        
-
-        print("Stránka načtena!")
+        page = open_page(browser)
         
 
         rain_active = False
+        last_reload = time.time()
         
 
         while True:
@@ -67,11 +72,7 @@ def start_scraper(callback):
                             flags=re.IGNORECASE
                         )
 
-                        for link in links:
-                            if not link.startswith("http"):
-                                link = "https://" + link
-
-                            save_kick_link(link)
+                        
 
                     for link in links:
                         if not link.startswith("http"):
@@ -132,7 +133,18 @@ def start_scraper(callback):
                 callback(amount, online, current_rain)
 
                 time.sleep(20)
+                if time.time() - last_reload > 1800:
+                    print("Refreshing page...")
 
+                    try:
+                        page.close()
+                    except:
+                        pass
+
+                    page = open_page(browser)
+                    last_reload = time.time()
+                
             except Exception as e:
                 print("SCRAPER ERROR:", repr(e))
                 time.sleep(1)
+       
