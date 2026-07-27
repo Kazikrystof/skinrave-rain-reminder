@@ -137,6 +137,27 @@ async def invite(interaction: discord.Interaction):
 
     await interaction.response.send_message(embed=embed)
 
+from datetime import datetime
+import scraper
+
+@bot.tree.command(name="testrain", description="Send a test rain notification")
+@app_commands.checks.has_permissions(administrator=True)
+async def testrain(interaction: discord.Interaction):
+
+    global last_rain
+
+    last_rain = datetime.now()
+
+    await send_rain(
+        interaction.channel.id,
+        scraper.amount or "8,020.87",
+        scraper.online or "1234"
+    )
+
+    await interaction.response.send_message(
+        "✅ Test rain sent.",
+        ephemeral=True
+    )   
 
 @bot.tree.command(
     name="last_rain",
