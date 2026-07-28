@@ -116,7 +116,7 @@ async def invite(interaction: discord.Interaction):
     embed = discord.Embed(
         title="🤖 Invite Rain Checker",
         description="Add **Rain Checker** to your Discord server in one click.",
-        color=discord.Color.green()
+        color=discord.Color.blurple()
     )
 
     embed.add_field(
@@ -200,7 +200,7 @@ async def pot(interaction: discord.Interaction):
 
     embed = discord.Embed(
         title="🌧️ Current Rain Pot",
-        color=discord.Color.green()
+        color=discord.Color.og_blurple()
     )
 
     embed.add_field(
@@ -359,7 +359,7 @@ async def send_rain(channel_id, amount, online):
     embed = discord.Embed(
         title="🌧️ Rain Started!",
         description="A new **SkinRave Rain** has just started.",
-        color=discord.Color.green()
+        color=discord.Color.blurple()
     )
 
     embed.add_field(
