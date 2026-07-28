@@ -44,7 +44,7 @@ def rain_found(amount, online, current_rain):
 
                 if not pot_alert_sent[guild_id]:
 
-                    print(f"💰 Pot Alert -> {guild_id}")
+                    print(f"💰 Pot Alert  -> {guild_id}")
 
                     future = asyncio.run_coroutine_threadsafe(
                         send_pot_alert(channel_id, amount, role_id),
