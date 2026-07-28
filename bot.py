@@ -420,6 +420,38 @@ async def testall(ctx):
         print("CHYBA:", repr(e))
         await ctx.send(f"❌ {e}")
 
+@bot.tree.command(name="support", description="Join the Rain Checker support server.")
+async def support(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="💬 Rain Checker Support",
+        description=(
+            "Need help, want to report a bug, or have a suggestion?\n\n"
+            "**Join our official Discord server!**"
+        ),
+        color=discord.Color.blurple()
+    )
+
+    embed.add_field(
+        name="🌧️ Support Server",
+        value="[Click here to join](https://discord.gg/bypc8qF4B)",
+        inline=False
+    )
+
+    embed.set_footer(text="Rain Checker")
+
+    view = discord.ui.View()
+    view.add_item(
+        discord.ui.Button(
+            label="Join Support Server",
+            url="https://discord.gg/bypc8qF4B",
+            emoji="💬"
+        )
+    )
+
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
 @app_commands.checks.has_permissions(administrator=True)
 @bot.tree.command(
     name="help",
@@ -431,6 +463,7 @@ async def help(interaction: discord.Interaction):
         title="📖 Rain Checker Commands",
         color=discord.Color.blue()
     )
+    
 
     commands = sorted(bot.tree.get_commands(), key=lambda c: c.name)
 
