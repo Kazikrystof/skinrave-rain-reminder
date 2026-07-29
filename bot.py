@@ -319,9 +319,14 @@ async def settings(interaction: discord.Interaction):
 @bot.tree.command(
     name="setup",
     description="Select current channel for rain notifications",
-    
 )
-async def setup(interaction: discord.Interaction):
+@app_commands.describe(
+    role="Role to mention during rain notifications (optional)"
+)
+async def setup(
+    interaction: discord.Interaction,
+    role: discord.Role | None = None
+):
 
     guild_id = str(interaction.guild.id)
     channel_id = interaction.channel.id
@@ -336,14 +341,19 @@ async def setup(interaction: discord.Interaction):
         data[guild_id] = {}
 
     data[guild_id]["channel_id"] = channel_id
+    data[guild_id]["role_id"] = role.id if role else None
 
     with open(CONFIG_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4)
 
-    await interaction.response.send_message(
-        "✅ Tento kanál byl nastaven pro Rain notifikace."
-    )
-
+    if role:
+        await interaction.response.send_message(
+            f"✅ Tento kanál byl nastaven pro Rain notifikace.\n🔔 Tagovaná role: {role.mention}"
+        )
+    else:
+        await interaction.response.send_message(
+            "✅ Tento kanál byl nastaven pro Rain notifikace.\n🔕 Žádná role nebude tagována."
+        )
 
 async def send_rain(channel_id, amount, online):
     

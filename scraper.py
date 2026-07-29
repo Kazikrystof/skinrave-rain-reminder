@@ -48,6 +48,7 @@ def save_kick_link(link):
 
 def start_scraper(callback):
     print("SCRAPER FUNCTION STARTED")
+    
     global amount, online
 
     with sync_playwright() as p:
@@ -162,6 +163,16 @@ def start_scraper(callback):
 
                     rain_active = False
                     print("❌ Rain skončil.")
+
+                    print("🔄 Obnovuji stránku po rainu...")
+
+                    try:
+                        page.close()
+                    except Exception:
+                        traceback.print_exc()
+
+                    page = open_page(browser)
+                    last_reload = time.time()
                 print("Calling callback...")
                 callback(amount, online, current_rain)
                 print("Callback finished.")
