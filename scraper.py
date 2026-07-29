@@ -6,6 +6,7 @@ import re
 import csv
 import os
 import bot
+import traceback
 amount = None
 online = None
 
@@ -16,7 +17,11 @@ def open_page(browser):
 
     print("Načítám stránku...")
 
-    page.goto(URL, wait_until="domcontentloaded")
+    page.goto(
+    URL,
+    wait_until="domcontentloaded",
+    timeout=30000
+    )
     page.wait_for_timeout(5000)
 
     print("Stránka načtena!")
@@ -56,9 +61,14 @@ def start_scraper(callback):
         
 
         while True:
+            print(f"Loop {datetime.now().strftime('%H:%M:%S')}")
             try:
                 try:
+                    print("Reading chat...")
+
                     messages = page.locator("#chat-container p").all_inner_texts()
+
+                    print("Chat loaded.")
                     messages.reverse()
 
                     for msg in messages:
@@ -80,12 +90,13 @@ def start_scraper(callback):
                         save_kick_link(link)
 
                 except Exception:
-                    pass 
+                    traceback.print_exc()
 
                 # Aktualizace potu
                 try:
                     amount = page.get_by_test_id("rain-pot").inner_text(timeout=1000)
                 except:
+                    traceback.print_exc()
                     amount = None
 
                 # Kontrola rainu
@@ -93,10 +104,14 @@ def start_scraper(callback):
                     'button[aria-label="join-rain-button"]'
                 )
 
-                current_rain = (
-                    join_button.count() > 0
-                    and join_button.is_visible()
-                )
+                try:
+                    current_rain = (
+                        join_button.count() > 0
+                        and join_button.is_visible(timeout=1000)
+                    )
+                except:
+                    traceback.print_exc()
+                    current_rain = False
 
                 # Online hráči
                 if current_rain:
@@ -105,6 +120,7 @@ def start_scraper(callback):
                             "span.text-sm.font-medium.text-white"
                         ).nth(1).inner_text(timeout=1000)
                     except:
+                        traceback.print_exc()
                         online = None
                 else:
                     online = None
@@ -128,18 +144,19 @@ def start_scraper(callback):
 
                     rain_active = False
                     print("❌ Rain skončil.")
-
-                # Callback až po načtení dat
+                print("Calling callback...")
                 callback(amount, online, current_rain)
-
+                print("Callback finished.")
+                print("Sleeping...")
                 time.sleep(20)
+                print("Awake.")
                 if time.time() - last_reload > 1800:
                     print("Refreshing page...")
 
                     try:
                         page.close()
-                    except:
-                        pass
+                    except Exception:
+                        traceback.print_exc()
 
                     page = open_page(browser)
                     last_reload = time.time()
