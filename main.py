@@ -23,7 +23,7 @@ def rain_found(amount, online, current_rain):
         with open(CONFIG_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
     except (FileNotFoundError, json.JSONDecodeError):
-        print("❌ Nepodařilo se načíst configs.json")
+        print("❌ Nepodařilo se načíst configs.json ")
         return
 
     for guild_id, guild in data.items():

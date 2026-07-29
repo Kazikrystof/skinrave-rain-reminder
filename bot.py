@@ -309,6 +309,7 @@ async def settings(interaction: discord.Interaction):
     )
 
     await interaction.response.send_message(embed=embed)
+    
 
 @app_commands.checks.has_permissions(administrator=True)
 @bot.tree.command(
