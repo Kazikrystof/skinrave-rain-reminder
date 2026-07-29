@@ -153,7 +153,8 @@ def start_scraper(callback):
                 print("Calling callback...")
                 callback(amount, online, current_rain)
                 print("Callback finished.")
-                print("Sleeping...\n")
+                print("Sleeping...")
+                print("")
                 time.sleep(20)
                 print("Awake.")
                 if time.time() - last_reload > 1800:
