@@ -94,7 +94,9 @@ def start_scraper(callback):
 
                 # Aktualizace potu
                 try:
+                    print("Reading pot...")
                     amount = page.get_by_test_id("rain-pot").inner_text(timeout=1000)
+                    print("Pot loaded.")
                 except:
                     traceback.print_exc()
                     amount = None
@@ -105,10 +107,12 @@ def start_scraper(callback):
                 )
 
                 try:
+                    print("Checking rain...")
                     current_rain = (
                         join_button.count() > 0
                         and join_button.is_visible(timeout=1000)
                     )
+                    print("Rain checked.")
                 except:
                     traceback.print_exc()
                     current_rain = False
@@ -116,9 +120,11 @@ def start_scraper(callback):
                 # Online hráči
                 if current_rain:
                     try:
+                        print("Reading online...")
                         online = page.locator(
                             "span.text-sm.font-medium.text-white"
                         ).nth(1).inner_text(timeout=1000)
+                        print("Online loaded.")
                     except:
                         traceback.print_exc()
                         online = None

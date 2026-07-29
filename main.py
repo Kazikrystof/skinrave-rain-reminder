@@ -50,9 +50,12 @@ def rain_found(amount, online, current_rain):
                         send_pot_alert(channel_id, amount, role_id),
                         bot.loop
                     )
+                    print("Waiting for send_rain...")
 
                     try:
-                        future.result()
+                        print("Waiting for send_pot_alert...")
+                        future.result(timeout=10)
+                        print("send_pot_alert finished.")
                         pot_alert_sent[guild_id] = True
                         print("✅ Pot Alert odeslán")
                     except Exception as e:
