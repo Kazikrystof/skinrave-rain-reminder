@@ -76,10 +76,9 @@ async def send_pot_alert(channel_id, amount, role_id=None):
     description="Set the minimum pot value for notifications."
 )
 @app_commands.describe(
-    amount="Minimum pot amount",
-    role="Role to mention (optional)"
+    amount="Minimum pot amount"
 )
-async def potalert(interaction: discord.Interaction, amount: float, role: discord.Role | None = None):
+async def potalert(interaction: discord.Interaction, amount: float):
 
     guild_id = str(interaction.guild.id)
 
@@ -96,10 +95,6 @@ async def potalert(interaction: discord.Interaction, amount: float, role: discor
 
     # Uložení hodnoty
     data[guild_id]["min_pot"] = amount
-    if role:
-        data[guild_id]["pot_role"] = role.id
-    else:
-        data[guild_id]["pot_role"] = None
 
     with open(CONFIG_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4)
@@ -284,7 +279,7 @@ async def settings(interaction: discord.Interaction):
 
     channel = guild.get("channel_id")
     pot = guild.get("min_pot", "Not set")
-    role = guild.get("pot_role")
+    role = guild.get("role_id")
 
     embed = discord.Embed(
         title="⚙️ Server Settings",
@@ -350,13 +345,15 @@ async def setup(
         await interaction.response.send_message(
             f"✅ Rain notifications have been configured.\n"
             f"📢 Notification channel: {interaction.channel.mention}\n"
-            f"🏷️ Mention role: {role.mention}"
+            f"🏷️ Mention role: {role.mention}",
+            ephemeral=True
         )
     else:
         await interaction.response.send_message(
             f"✅ Rain notifications have been configured.\n"
             f"📢 Notification channel: {interaction.channel.mention}\n"
-            f"🏷️ Mention role: None"
+            f"🏷️ Mention role: None",
+            ephemeral=True
         )
 
 async def send_rain(channel_id, amount, online):
@@ -403,7 +400,19 @@ async def send_rain(channel_id, amount, online):
         text="Rain Checker • By kazikrystof"
     )
 
-    await channel.send(embed=embed)
+    guild_id = str(channel.guild.id)
+
+    with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    role_id = data.get(guild_id, {}).get("role_id")
+
+    mention = f"<@&{role_id}>" if role_id else None
+
+    await channel.send(
+        content=mention,
+        embed=embed
+    )
 
 async def testall(ctx):
     print("TESTALL START")
