@@ -96,6 +96,7 @@ def start_scraper(callback):
                 try:
                     print("Reading pot...")
                     amount = page.get_by_test_id("rain-pot").inner_text(timeout=1000)
+                    print(f"Pot from page: {amount}")
                     print("Pot loaded.")
                 except:
                     traceback.print_exc()
