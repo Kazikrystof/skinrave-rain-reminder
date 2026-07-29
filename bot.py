@@ -318,10 +318,10 @@ async def settings(interaction: discord.Interaction):
 @app_commands.checks.has_permissions(administrator=True)
 @bot.tree.command(
     name="setup",
-    description="Select current channel for rain notifications",
+    description="Set the current channel for rain notifications",
 )
 @app_commands.describe(
-    role="Role to mention during rain notifications (optional)"
+    role="Role to mention when a rain starts (optional)"
 )
 async def setup(
     interaction: discord.Interaction,
@@ -348,11 +348,15 @@ async def setup(
 
     if role:
         await interaction.response.send_message(
-            f"✅ Tento kanál byl nastaven pro Rain notifikace.\n🔔 Tagovaná role: {role.mention}"
+            f"✅ Rain notifications have been configured.\n"
+            f"📢 Notification channel: {interaction.channel.mention}\n"
+            f"🏷️ Mention role: {role.mention}"
         )
     else:
         await interaction.response.send_message(
-            "✅ Tento kanál byl nastaven pro Rain notifikace.\n🔕 Žádná role nebude tagována."
+            f"✅ Rain notifications have been configured.\n"
+            f"📢 Notification channel: {interaction.channel.mention}\n"
+            f"🏷️ Mention role: None"
         )
 
 async def send_rain(channel_id, amount, online):
