@@ -102,18 +102,29 @@ def start_scraper(callback):
                     amount = None
 
                 # Kontrola rainu
-                join_button = page.locator(
-                    'button[aria-label="join-rain-button"]'
-                )
+                join_button = page.locator('button[aria-label="join-rain-button"]')
 
                 try:
                     print("Checking rain...")
-                    current_rain = (
-                        join_button.count() > 0
-                        and join_button.is_visible(timeout=1000)
-                    )
+
+                    count = join_button.count()
+                    print(f"Join count: {count}")
+
+                    if count > 0:
+                        visible = join_button.first.is_visible()
+                        enabled = join_button.first.is_enabled()
+                        text = join_button.first.inner_text()
+
+                        print(f"Visible: {visible}")
+                        print(f"Enabled: {enabled}")
+                        print(f"Text: {text}")
+
+                    current_rain = count > 0
+
+                    print(f"current_rain = {current_rain}")
                     print("Rain checked.")
-                except:
+
+                except Exception:
                     traceback.print_exc()
                     current_rain = False
 
