@@ -169,7 +169,7 @@ def start_scraper(callback):
                 print(" ")
                 time.sleep(5)
                 print("Awake.")
-                if time.time() - last_reload > 1800:
+                if time.time() - last_reload > 300:
                     print("Refreshing page...")
 
                     try:
