@@ -10,7 +10,8 @@ import scraper
 
 BASE_DIR = Path(__file__).parent
 CONFIG_FILE = BASE_DIR / "configs.json"
-load_dotenv(BASE_DIR / ".env")
+load_dotenv(
+            BASE_DIR / ".env")
 TOKEN = os.getenv("TOKEN")
 
 last_rain = None
@@ -32,16 +33,25 @@ async def on_ready():
     print(f"Synchronizováno {len(synced)} příkazů")
 
 
-async def send_pot_alert(channel_id, amount, role_id=None):
+async def send_pot_alert(guild_id, channel_id, amount):
 
     channel = bot.get_channel(channel_id)
 
     if not channel:
         return
-    mention = ""
+    with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-    if role_id:
-        mention = f"<@&{role_id}>"
+    roles = data.get(str(guild_id), {}).get("roles", {})
+
+    mention = None
+
+    if "🔔 Pot Alert" in roles:
+        mention = f"<@&{roles['🔔 Pot Alert']}>"
+
+    
+
+    
 
     embed = discord.Embed(
         title="💰 Pot Alert!",
@@ -66,8 +76,9 @@ async def send_pot_alert(channel_id, amount, role_id=None):
     )
 
     await channel.send(
-    content=mention,
-    embed=embed
+    content=mention if mention else None,
+    embed=embed,
+    allowed_mentions=discord.AllowedMentions(roles=True)
 )
 
 @app_commands.checks.has_permissions(administrator=True)
@@ -92,6 +103,13 @@ async def potalert(interaction: discord.Interaction, amount: float):
             ephemeral=True
         )
         return
+    
+    
+    
+   
+
+    with open(CONFIG_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
 
     # Uložení hodnoty
     data[guild_id]["min_pot"] = amount
@@ -102,6 +120,7 @@ async def potalert(interaction: discord.Interaction, amount: float):
     await interaction.response.send_message(
         f"✅ Pot alert has been set to **${amount}**."
     )
+    
 @bot.tree.command(
     name="invite",
     description="Generate an invite link."
@@ -116,7 +135,7 @@ async def invite(interaction: discord.Interaction):
 
     embed.add_field(
         name="🔗 Invite Link",
-        value="[Click here to invite the bot](https://discord.com/oauth2/authorize?client_id=1525916434528735373&permissions=281600&integration_type=0&scope=bot+applications.commands)",
+        value="[Click here to invite the bot](https://discord.com/oauth2/authorize?client_id=1525916434528735373&permissions=268520448&integration_type=0&scope=bot+applications.commands)",
         inline=False
     )
 
@@ -145,7 +164,7 @@ async def testrain(interaction: discord.Interaction):
 
     await send_rain(
         interaction.channel.id,
-        scraper.amount or "8,020.87",
+        "430",
         scraper.online or "1234"
     )
 
@@ -279,7 +298,8 @@ async def settings(interaction: discord.Interaction):
 
     channel = guild.get("channel_id")
     pot = guild.get("min_pot", "Not set")
-    role = guild.get("role_id")
+    roles = guild.get("roles", {})
+    
 
     embed = discord.Embed(
         title="⚙️ Server Settings",
@@ -297,12 +317,18 @@ async def settings(interaction: discord.Interaction):
         value=f"${pot}" if pot != "Not set" else "Disabled",
         inline=False
     )
+    role_list = []
+
+    for role_name in roles:
+        role_list.append(role_name)
 
     embed.add_field(
-        name="👥 Mention Role",
-        value=f"<@&{role}>" if role else "Disabled",
+        name="🔔 Alert Roles",
+        value="\n".join(role_list) if role_list else "Not configured",
         inline=False
     )
+
+    
 
     embed.set_footer(
         text="Rain Checker • By kazikrystof"
@@ -316,12 +342,8 @@ async def settings(interaction: discord.Interaction):
     name="setup",
     description="Set the current channel for rain notifications",
 )
-@app_commands.describe(
-    role="Role to mention when a rain starts (optional)"
-)
 async def setup(
-    interaction: discord.Interaction,
-    role: discord.Role | None = None
+    interaction: discord.Interaction
 ):
 
     guild_id = str(interaction.guild.id)
@@ -337,25 +359,217 @@ async def setup(
         data[guild_id] = {}
 
     data[guild_id]["channel_id"] = channel_id
-    data[guild_id]["role_id"] = role.id if role else None
+    data[guild_id]["roles"] = {}
 
     with open(CONFIG_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4)
 
-    if role:
+    await interaction.response.send_message(
+    f"✅ Rain notifications have been configured.\n"
+    f"📢 Notification channel: {interaction.channel.mention}",
+    ephemeral=True
+)
+    
+@app_commands.checks.has_permissions(administrator=True)
+@bot.tree.command(
+    name="setupalerts",
+    description="Creates the alert roles."
+)
+async def setupalerts(interaction: discord.Interaction):
+    
+    guild = interaction.guild
+    guild_id = str(guild.id)
+
+    with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    if guild_id not in data:
         await interaction.response.send_message(
-            f"✅ Rain notifications have been configured.\n"
-            f"📢 Notification channel: {interaction.channel.mention}\n"
-            f"🏷️ Mention role: {role.mention}",
+            "❌ Please use **/setup** first.",
             ephemeral=True
         )
-    else:
+        return
+    roles_to_create = [
+        "🌧️ All Rains",
+        "💰 50+",
+        "💸 100+",
+        "💎 250+",
+        "🚀 500+",
+        "🔔 Pot Alert"
+    ]
+    me = guild.me
+
+    if not me.guild_permissions.manage_roles:
         await interaction.response.send_message(
-            f"✅ Rain notifications have been configured.\n"
-            f"📢 Notification channel: {interaction.channel.mention}\n"
-            f"🏷️ Mention role: None",
+            "❌ I need the **Manage Roles** permission.\n"
+            "Please re-invite the bot with **Manage Roles** enabled.",
             ephemeral=True
         )
+        return
+    saved_roles = {}
+
+    try:
+        for role_name in roles_to_create:
+
+            role = discord.utils.get(guild.roles, name=role_name)
+
+            if role is None:
+                role = await guild.create_role(name=role_name)
+
+            saved_roles[role_name] = role.id
+
+    except discord.Forbidden:
+        await interaction.response.send_message(
+            "❌ I couldn't create the roles.\n"
+            "Make sure I have **Manage Roles** permission and that my role is above the roles I manage.",
+            ephemeral=True
+        )
+        return
+
+    except Exception as e:
+        print("SETUPALERTS ERROR:", repr(e))
+
+        await interaction.response.send_message(
+            "❌ Unexpected error while creating roles.",
+            ephemeral=True
+        )
+        return
+
+    data[guild_id]["roles"] = saved_roles
+
+    with open(CONFIG_FILE, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
+
+    await interaction.response.send_message(
+        "✅ Alert roles have been created.",
+        ephemeral=True
+    )
+    
+
+class AlertView(discord.ui.View):
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    async def toggle_role(self, interaction: discord.Interaction, role_name: str):
+
+        guild_id = str(interaction.guild.id)
+
+        with open(CONFIG_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        role_id = data[guild_id]["roles"][role_name]
+
+        role = interaction.guild.get_role(role_id)
+
+        if role is None:
+            await interaction.response.send_message(
+                "❌ Role not found.",
+                ephemeral=True
+            )
+            return
+
+        if role in interaction.user.roles:
+
+            await interaction.user.remove_roles(role)
+
+            await interaction.response.send_message(
+                f"❌ {role_name} alerts disabled.",
+                ephemeral=True
+            )
+
+        else:
+
+            await interaction.user.add_roles(role)
+
+            await interaction.response.send_message(
+                f"✅ {role_name} alerts enabled.",
+                ephemeral=True
+            )
+
+    @discord.ui.button(
+        label="🌧️ All Rains",
+        style=discord.ButtonStyle.primary
+    )
+    async def all_rains(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "🌧️ All Rains")
+
+    @discord.ui.button(
+    label="💰 50+",
+    style=discord.ButtonStyle.secondary
+    )
+    async def rain50(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "💰 50+")
+    
+    @discord.ui.button(
+    label="💸 100+",
+    style=discord.ButtonStyle.secondary
+    )
+    async def rain100(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "💸 100+")
+
+    @discord.ui.button(
+    label="💎 250+",
+    style=discord.ButtonStyle.secondary
+    )
+    async def rain250(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "💎 250+")
+
+    @discord.ui.button(
+    label="🚀 500+",
+    style=discord.ButtonStyle.secondary
+    )
+    async def rain500(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "🚀 500+")
+
+    @discord.ui.button(
+        label="🔔 Pot Alert",
+        style=discord.ButtonStyle.success
+    )
+    async def potalert(
+        self,
+        interaction: discord.Interaction,
+        button: discord.ui.Button
+    ):
+        await self.toggle_role(interaction, "🔔 Pot Alert")
+
+@bot.tree.command(
+    name="alerts",
+    description="Send the alert role panel."
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def alerts(interaction: discord.Interaction):
+
+    embed = discord.Embed(
+        title="🌧️ Rain Alerts",
+        description="Choose which rain notifications you want.",
+        color=discord.Color.blurple()
+    )
+
+    await interaction.response.send_message(
+        embed=embed,
+        view=AlertView()
+    )       
 
 async def send_rain(channel_id, amount, online):
     
@@ -406,12 +620,39 @@ async def send_rain(channel_id, amount, online):
     with open(CONFIG_FILE, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    role_id = data.get(guild_id, {}).get("role_id")
+    mention = None
 
-    mention = f"<@&{role_id}>" if role_id else None
+    roles = data[guild_id].get("roles", {})
+
+    try:
+        pot = float(str(amount).replace(",", ""))
+    except:
+        pot = 0
+
+    mentions = []
+
+    # All rains
+    if "🌧️ All Rains" in roles:
+        mentions.append(f"<@&{roles['🌧️ All Rains']}>")
+
+    if pot >= 50 and "💰 50+" in roles:
+        mentions.append(f"<@&{roles['💰 50+']}>")
+
+    if pot >= 100 and "💸 100+" in roles:
+        mentions.append(f"<@&{roles['💸 100+']}>")
+
+    if pot >= 250 and "💎 250+" in roles:
+        mentions.append(f"<@&{roles['💎 250+']}>")
+
+    if pot >= 500 and "🚀 500+" in roles:
+        mentions.append(f"<@&{roles['🚀 500+']}>")
+
+    print(f"Pot: {pot}")
+    print(f"Mentions: {mentions}")
+    mention = " ".join(mentions)
 
     await channel.send(
-        content=mention,
+        content=mention if mention else None,
         embed=embed
     )
 

@@ -29,8 +29,8 @@ def rain_found(amount, online, current_rain):
     for guild_id, guild in data.items():
 
         channel_id = guild["channel_id"]
-        min_pot = guild.get("min_pot")
-        role_id = guild.get("pot_role")
+        min_pot = float(guild.get("min_pot", 100))
+        
 
         pot_alert_sent.setdefault(guild_id, False)
         rain_sent.setdefault(guild_id, False)
@@ -40,15 +40,15 @@ def rain_found(amount, online, current_rain):
         if amount:
             current_pot = float(amount.replace(",", ""))
 
-            if current_pot >= float(min_pot):
+            if current_pot >= min_pot:
 
                 if not pot_alert_sent[guild_id]:
 
                     print(f"💰 Pot Alert  -> {guild_id}")
 
                     future = asyncio.run_coroutine_threadsafe(
-                        send_pot_alert(channel_id, amount, role_id),
-                        bot.loop
+                    send_pot_alert(guild_id, channel_id, amount),
+                    bot.loop
                     )
                     print("Waiting for send_rain...")
 
